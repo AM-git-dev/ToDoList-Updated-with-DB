@@ -8,9 +8,9 @@ const rl = readline.createInterface({
 
 const connection = await mysql.createConnection({
     host: 'localhost',
-    user: 'Maxime',
-    password: '2209',
-    database: 'tasks',
+    user: '****',
+    password: '****',
+    database: '****',
 });
 const createTableIfNotExisting = async () => {
     const tableExistsQuery = `
@@ -171,6 +171,7 @@ function toDoList() {
         } else if (answer === "5") {
             console.log("\nBye Bye!\n");
             rl.close();
+            connection.end()
         } else {
             console.log('\nWrong Input\n');
             toDoList();
