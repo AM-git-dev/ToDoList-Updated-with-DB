@@ -48,26 +48,35 @@ await createTableIfNotExisting();
 
 const addTask = async (taskDescription) => {
     const addTaskQuery = `
-    INSERT INTO tasks (description, status)
-    VALUES (?, 'pending');
-  `;
+        INSERT INTO tasks (description, status)
+        VALUES (?, 'pending');
+    `;
     await connection.execute(addTaskQuery, [taskDescription]);
     console.log(`Task added: "${taskDescription}"`);
 };
 
 const seeAllTasks = async () => {
     const [rows] = await connection.execute('SELECT * FROM tasks');
+
     console.log("\nListe des tâches :");
     rows.forEach(task => {
         console.log(`${task.id}. ${task.description} - ${task.status}`);
     });
     console.log(""); // Ligne vide pour la forme
-    toDoList();
+    rl.question('Press ENTER to go to Menu or 1 to filter tasks by status \n' , (answer) => {
+        if (answer === "") {
+            toDoList();
+        } else if (answer === "1") {
+
+             filterByStatus()
+        }
+    })
 };
 
 const deleteTask = async (taskId) => {
     const deleteTaskQuery = `
-        DELETE FROM tasks
+        DELETE
+        FROM tasks
         WHERE id = ?;
     `;
     await connection.execute(deleteTaskQuery, [taskId]);
@@ -77,14 +86,37 @@ const deleteTask = async (taskId) => {
 
 const changeTaskStatus = async (taskId, newStatus) => {
     const updateTaskQuery = `
-    UPDATE tasks
-    SET status = ?
-    WHERE id = ?;
-  `;
+        UPDATE tasks
+        SET status = ?
+        WHERE id = ?;
+    `;
     await connection.execute(updateTaskQuery, [newStatus, taskId]);
     console.log(`Task with ID ${taskId} marked as ${newStatus}!`);
     toDoList();
 };
+
+const filterByStatus = async () => {
+    rl.question('\nEnter the status to filter by ("done", "pending"):\n', async (status) => {
+        const filterQuery = `
+            SELECT *
+            FROM tasks
+            WHERE status = ?;
+        `;
+        const [rows] = await connection.execute(filterQuery, [status]);
+
+        console.log(`\nTasks with status "${status}":`);
+        rows.forEach(task => {
+            console.log(`${task.id}. ${task.description} - ${task.status}`);
+        });
+        console.log(""); // Ligne vide pour la forme
+
+        rl.question('Press ENTER to go to Menu', (answer) => {
+            if (answer === "") {
+                toDoList();
+            }
+        });
+    });
+}
 
 function toDoList() {
     rl.question('Press: \n\n1. to see all your tasks \n2. To add a task \n3. To delete a task \n4. To change the status of the task \n5. To Exit the Task Manager \n\n', async (answer) => {
