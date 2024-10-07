@@ -63,12 +63,16 @@ const seeAllTasks = async () => {
         console.log(`${task.id}. ${task.description} - ${task.status}`);
     });
     console.log(""); // Ligne vide pour la forme
-    rl.question('Press ENTER to go to Menu or 1 to filter tasks by status \n' , (answer) => {
+    rl.question('Press ENTER to go to Menu, 1 to filter tasks by status, 2 to search by Keyword \n', (answer) => {
+        readline.moveCursor(process.stdout, 0, -1);
+        readline.clearLine(process.stdout, 0)
         if (answer === "") {
             toDoList();
         } else if (answer === "1") {
 
-             filterByStatus()
+            filterByStatus()
+        } else if (answer === "2") {
+            searchByKeyword()
         }
     })
 };
@@ -106,7 +110,33 @@ const filterByStatus = async () => {
 
         console.log(`\nTasks with status "${status}":`);
         rows.forEach(task => {
-            console.log(`${task.id}. ${task.description} - ${task.status}`);
+            console.log(`${task.description} - ${task.status}`);
+        });
+        console.log(""); // Ligne vide pour la forme
+
+        rl.question('Press ENTER to go to Menu', (answer) => {
+
+            if (answer === "") {
+                toDoList();
+            }
+        });
+    });
+}
+
+const searchByKeyword = async () => {
+    rl.question('\nEnter the task to search by keyword:\n', async (keyword) => {
+        readline.moveCursor(process.stdout, 0, -2);
+        readline.clearLine(process.stdout, 0)
+
+        const searchQuery =
+            `SELECT *
+             FROM tasks
+             WHERE description LIKE ?;`
+        ;
+        const [rows] = await connection.execute(searchQuery, [`%${keyword}%`]);
+        console.log(`relevant tasks with ${keyword} included`);
+        rows.forEach(task => {
+            console.log(`${task.description} - ${task.status}`);
         });
         console.log(""); // Ligne vide pour la forme
 
@@ -117,6 +147,7 @@ const filterByStatus = async () => {
         });
     });
 }
+
 
 function toDoList() {
     rl.question('Press: \n\n1. to see all your tasks \n2. To add a task \n3. To delete a task \n4. To change the status of the task \n5. To Exit the Task Manager \n\n', async (answer) => {
